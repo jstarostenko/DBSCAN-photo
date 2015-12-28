@@ -5,10 +5,16 @@ from sklearn import metrics
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import random
+import import_pixels
+import plotting_functions
 
+a = import_pixels.imp_pixels('IMG_2549.jpg')
+
+
+"""
 #open image file and extract pixel data
 def create_pixel_array():
-	with open('starfish.jpg') as f: #when this is closed, image is closed
+	with open('IMG_2571.jpg') as f: #when this is closed, image is closed
 		image = Image.open(f)
 		return np.array(image, dtype = np.int16)
 
@@ -18,42 +24,53 @@ a = []
 for i in pixel_array:
 	for j in i:
 		a.append(j)
-
+"""
 #plot sample points:
 
+#generate sample data:
+sample = []
+for point in a:
+	if random.random() < 1000 / float(len(a)):
+		sample.append(point)
+sample = np.asarray(sample)
+
+#run DBSCAN:
+db = DBSCAN(eps=8, min_samples=5).fit(sample)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+print('Estimated number of clusters: %d' % n_clusters_)	
+
+ax,ay = plotting_functions.create_plots('ax','ay', n_clusters_)
+
+sample = []
+for point in a:
+	if random.random() < 2000 / float(len(a)):
+		plotting_functions.plot_point(ay, *point)
+
+"""
 fig = plt.figure(figsize=(7,7), dpi=120)
 fig2 = plt.figure(figsize=(7,7), dpi=120)
 ax = fig.add_subplot(111, projection='3d')
 ay = fig2.add_subplot(111, projection='3d')
-
+"""
+"""
 def convert_to_string_color(r,g,b):
     r_str = ("0x%0.2X" % r)[-2:]
     g_str = ("0x%0.2X" % g)[-2:]
     b_str = ("0x%0.2X" % b)[-2:]
     return "#" + r_str + g_str + b_str
 
-def plot_point(x,y,z):
+def scatter_plot(atype,x,y,z,color,marker):
+	atype.scatter(x,y,z, c=color, marker = marker, depthshade=False)
+
+def plot_point(atype,x,y,z):
 	color = convert_to_string_color(x,y,z)
-	ay.scatter(x, y, z, c=color, marker="o", depthshade=False)
+	scatter_plot(atype, x, y, z, color, "o")
+"""
 
-#generate sample data:
-sample = []
-for point in a:
-	if random.random() < 1000 / float(len(a)):
-		plot_point(*point)
-	if random.random() < 5000 / float(len(a)):
-		sample.append(point)
-sample = np.asarray(sample)
 
-#run DBSCAN:
-db = DBSCAN(eps=10, min_samples=5).fit(sample)
-core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-core_samples_mask[db.core_sample_indices_] = True
-labels = db.labels_
-print "Labels:", labels
-
-n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-print('Estimated number of clusters: %d' % n_clusters_)	
 
 #determine locations of DBSCAN points:
 def dbplot(cluster_type):
@@ -61,45 +78,45 @@ def dbplot(cluster_type):
 	for i in cluster_type:
 		for j in i:
 			loc = sample[j]
+			print loc
 			dbscan_plot_points.append(loc)
 	return dbscan_plot_points
 
-def plot_point_db(color,marker,x,y,z):
-	ax.scatter(x, y, z, c=color, marker=marker, depthshade=False)
+def plot_point_db(atype, color, marker, x,y,z):
+	plotting_functions.scatter_plot(atype, x, y, z, color, marker)
 
-cluster_label = 0
-
-while cluster_label >= 0 and cluster_label < n_clusters_:
-	cluster_loc = np.where(labels == cluster_label)
+def points_dbscan():
 	dbscan_plot_points = dbplot(cluster_loc)
-	#generate sample of sample data to be plotted for DBSCAN
 	sample_plot = []
 	for point in dbscan_plot_points:
 		if random.random() < 300 / float(len(dbscan_plot_points)):
 			sample_plot.append(point)
-	r,g,b = sample_plot[0]
-	marker = "o"
-	color = convert_to_string_color(r,g,b)
+	return sample_plot
+
+def plot_dbscan(r,g,b,marker):
+	color = plotting_functions.convert_to_string_color(r,g,b)
+	atype = ax
 	for point in sample_plot:
-		plot_point_db(color, marker, *point)
+		plot_point_db(atype, color, marker, *point)
+
+cluster_label = 0
+while cluster_label >= 0 and cluster_label < n_clusters_:
+	cluster_loc = np.where(labels == cluster_label)
+	sample_plot = points_dbscan()
+	r,g,b = sample_plot[0]
+	plot_dbscan(r,g,b,"o")
 	cluster_label += 1
 
 else:
 	cluster_loc = np.where(labels == -1)
-	dbscan_plot_points = dbplot(cluster_loc)
-	#generate sample of sample to be plotted
-	sample_plot = []
-	for point in dbscan_plot_points:
-		if random.random() < 300 / float(len(dbscan_plot_points)):
-			sample_plot.append(point)
+	sample_plot = points_dbscan()
 	r,g,b = (22,22,22)
-	marker = "+"
-	color = convert_to_string_color(r,g,b)
-	for point in sample_plot:
-		plot_point_db(color, marker, *point)
+	plot_dbscan(r,g,b,"+")
 
 
+plotting_functions.format_plots(ax,ay,fig,fig2)
 
+"""
 #format plots
 ax.set_xlabel('Red Component')
 ax.set_ylabel('Green Component')
@@ -116,5 +133,6 @@ ay.set_xbound(0,255)
 ay.set_ybound(0,255)
 ay.set_zbound(0,255)
 fig2.suptitle('Sample Pixels')
+"""
 
 plt.show()
