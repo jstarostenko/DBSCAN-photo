@@ -30,15 +30,19 @@ for i in pixel_array:
 #generate sample data:
 sample = []
 for point in a:
-	if random.random() < 1000 / float(len(a)):
+	if random.random() < 500 / float(len(a)):
 		sample.append(point)
 sample = np.asarray(sample)
+print sample.shape
+
 
 #run DBSCAN:
-db = DBSCAN(eps=8, min_samples=5).fit(sample)
+db = DBSCAN(eps=10, min_samples=5).fit(sample)
 core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
 core_samples_mask[db.core_sample_indices_] = True
 labels = db.labels_
+print "labels array:", labels
+print labels.shape
 n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
 print('Estimated number of clusters: %d' % n_clusters_)	
 
@@ -46,7 +50,7 @@ ax,ay = plotting_functions.create_plots('ax','ay', n_clusters_)
 
 sample = []
 for point in a:
-	if random.random() < 2000 / float(len(a)):
+	if random.random() < 1000 / float(len(a)):
 		plotting_functions.plot_point(ay, *point)
 
 """
@@ -78,8 +82,9 @@ def dbplot(cluster_type):
 	for i in cluster_type:
 		for j in i:
 			loc = sample[j]
-			print loc
 			dbscan_plot_points.append(loc)
+	#provide list of points that are associated with label x
+	print "dbscan_plot_points shape:", dbscan_plot_points.shape
 	return dbscan_plot_points
 
 def plot_point_db(atype, color, marker, x,y,z):
@@ -87,6 +92,7 @@ def plot_point_db(atype, color, marker, x,y,z):
 
 def points_dbscan():
 	dbscan_plot_points = dbplot(cluster_loc)
+
 	sample_plot = []
 	for point in dbscan_plot_points:
 		if random.random() < 300 / float(len(dbscan_plot_points)):
@@ -101,10 +107,14 @@ def plot_dbscan(r,g,b,marker):
 
 cluster_label = 0
 while cluster_label >= 0 and cluster_label < n_clusters_:
+	#determine location in labels array where label is set to x
 	cluster_loc = np.where(labels == cluster_label)
+	#gather 
 	sample_plot = points_dbscan()
 	r,g,b = sample_plot[0]
+	#plot these points
 	plot_dbscan(r,g,b,"o")
+	#move to next label x
 	cluster_label += 1
 
 else:
