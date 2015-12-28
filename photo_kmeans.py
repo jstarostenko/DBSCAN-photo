@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import random
 
-#open image file and extract pixel data
+
 def create_pixel_array():
-	with open('tim.jpg') as f: #when this is closed, image is closed
+	with open('IMG_2571.jpg') as f: #when this is closed, image is closed
 		image = Image.open(f)
 		return np.array(image, dtype = np.float64)
 
@@ -37,6 +37,8 @@ def plot_point(x,y,z):
 	color = convert_to_string_color(x,y,z)
 	ay.scatter(x, y, z, c=color, marker="o", depthshade=False)
 
+
+
 #generate sample data
 sample = []
 for point in a:
@@ -47,7 +49,7 @@ for point in a:
 sample = np.asarray(sample)
 
 #run KMeans
-est = KMeans(n_clusters=3, init='kmeans++', max_iter=300)
+est = KMeans(n_clusters=5, init='random', max_iter=3000)
 est.fit(sample)
 labels = est.predict(sample)
 print "Labels:", labels
