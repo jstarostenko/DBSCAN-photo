@@ -1,7 +1,7 @@
 from PIL import Image
 import numpy as np
 
-def imp_pixels(filename):
+def import_pixels(filename):
     def create_pixel_array(filename):
         with open(filename) as f:
             image = Image.open(f)
